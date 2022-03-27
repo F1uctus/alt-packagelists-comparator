@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "altpacom"
+version = "0.1.0"
+description = "basealt binary package lists comparator"
+authors = ["Ilya Nikitin <f1uctus@mail.ru>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.4.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
