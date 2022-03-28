@@ -10,8 +10,8 @@ setup_logging()
 
 
 @pytest.mark.parametrize("platform", SUPPORTED_PLATFORMS)
-def test_load_package_list_for_valid_platform(platform: str):
-    result = apc.load_package_list(platform=platform, arch="aarch64")
+def test_load_package_list_for_valid_platform(platform: str, responses):
+    result = responses[platform]
 
     assert isinstance(result, Dict)
 
