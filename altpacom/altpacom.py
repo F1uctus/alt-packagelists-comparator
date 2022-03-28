@@ -1,11 +1,13 @@
 import json
 import logging as log
 import urllib.parse
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Any, Set
 from urllib.error import URLError, HTTPError
 from urllib.request import urlopen
 
 from altpacom.constants import PACKAGES_BY_PLATFORM_URL, SUPPORTED_PLATFORMS
+
+PackageInfo = Dict[str, Any]
 
 
 def load_package_list(*, platform: str, arch: Optional[str] = None) -> Dict:
@@ -15,7 +17,7 @@ def load_package_list(*, platform: str, arch: Optional[str] = None) -> Dict:
     :param platform: One of supported platforms.
     :param arch: One of platform's architectures.
     :return: Downloaded JSON dictionary of structure
-             {"request_args": {}, "length": 1, "packages": []}.
+             {"request_args": {}, "length": 1, "packages": [PackageInfo]}.
     """
 
     if platform not in SUPPORTED_PLATFORMS:
@@ -39,3 +41,30 @@ def load_package_list(*, platform: str, arch: Optional[str] = None) -> Dict:
             f"Failed to load the package list for platform: {platform}", exc_info=e
         )
         exit(e.errno)
+
+
+def _group_by_name(package_list: List[PackageInfo]) -> Dict[str, List[PackageInfo]]:
+    return {pkg["name"]: pkg for pkg in package_list}
+
+
+def select_unique_in(
+    platform: str,
+    package_lists: Dict[str, List[PackageInfo]],
+) -> Set[PackageInfo]:
+    """
+    Finds packages unique for given platform in given platform package lists.
+
+    :param platform: Platform to get unique packages for.
+    :param package_lists: Dictionary of [Platform name] -> [Packages list]
+    """
+
+    result = _group_by_name(package_lists[platform])
+
+    for p, package_list in package_lists.items():
+        if p == platform:
+            continue
+
+        another_pl = _group_by_name(package_list)
+        result = {k: result[k] for k in set(result) - set(another_pl)}
+
+    return result.values()  # noqa
