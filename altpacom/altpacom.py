@@ -68,3 +68,31 @@ def select_unique_in(
         result = {k: result[k] for k in set(result) - set(another_pl)}
 
     return result.values()  # noqa
+
+
+def select_newest_in(
+    platform: str,
+    package_lists: Dict[str, List[PackageInfo]],
+) -> Set[PackageInfo]:
+    """
+    Finds packages of given platform that have their version greater
+    than the same packages from other platform package lists specified.
+
+    :param platform: Platform to get the newest packages for.
+    :param package_lists: Dictionary of [Platform name] -> [Packages list]
+    """
+
+    common = _group_by_name(package_lists[platform])
+
+    for p, package_list in package_lists.items():
+        if p == platform:
+            continue
+
+        another_pl = _group_by_name(package_list)
+        common = {
+            k: common[k]
+            for k in set(common) & set(another_pl)
+            if common[k]["version"] > another_pl[k]["version"]
+        }
+
+    return common.values()  # noqa
