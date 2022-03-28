@@ -43,7 +43,7 @@ def load_package_list(*, platform: str, arch: Optional[str] = None) -> Dict:
         exit(e.errno)
 
 
-def _group_by_name(package_list: List[PackageInfo]) -> Dict[str, List[PackageInfo]]:
+def _group_by_name(package_list: List[PackageInfo]) -> Dict[str, PackageInfo]:
     return {pkg["name"]: pkg for pkg in package_list}
 
 
