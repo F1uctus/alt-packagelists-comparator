@@ -11,14 +11,14 @@ setup_logging()
 
 @pytest.mark.parametrize("platform", SUPPORTED_PLATFORMS)
 def test_load_package_list_for_valid_platform(platform: str):
-    result = apc.load_package_list(platform=platform)
+    result = apc.load_package_list(platform=platform, arch="aarch64")
 
     assert isinstance(result, Dict)
 
 
 @pytest.mark.parametrize("platform", ["octopus", "9amogus", "123", "@$%#!"])
 def test_load_package_list_for_invalid_platform(platform: str):
-    result = apc.load_package_list(platform=platform)
+    result = apc.load_package_list(platform=platform, arch="aarch64")
 
     assert isinstance(result, Dict)
     assert len(result) == 0
