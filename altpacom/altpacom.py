@@ -1,7 +1,8 @@
 import json
 import logging as log
 import urllib.parse
-from typing import Dict, Optional, List, Any, Set
+from collections import defaultdict
+from typing import Dict, Optional, List, Any, Set, Collection
 from urllib.error import URLError, HTTPError
 from urllib.request import urlopen
 
@@ -45,6 +46,17 @@ def load_package_list(*, platform: str, arch: Optional[str] = None) -> Dict:
 
 def _group_by_name(package_list: List[PackageInfo]) -> Dict[str, PackageInfo]:
     return {pkg["name"]: pkg for pkg in package_list}
+
+
+def group_by_arch(
+    package_list: Collection[PackageInfo],
+) -> Dict[str, List[PackageInfo]]:
+    results = defaultdict(list)
+
+    for pkg in package_list:
+        results[pkg["arch"]].append({k: v for k, v in pkg.items() if k != "arch"})
+
+    return results
 
 
 def select_unique_in(

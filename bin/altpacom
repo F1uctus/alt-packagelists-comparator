@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+import json
+import logging
+import sys
+from argparse import ArgumentParser
+from collections import defaultdict
+from typing import Dict, List
+
+import altpacom
+from altpacom import altpacom as apc
+from altpacom.altpacom import PackageInfo
+from altpacom.constants import SUPPORTED_PLATFORMS
+
+parser = ArgumentParser(
+    prog=f"ALT Package lists Comparator v{altpacom.__version__}.",
+    usage="altpacom [-h] [-a ARCH]"
+          + " -x <platform to find exclusive packages in>"
+          + " -n <platform to find newest packages in>"
+          + "\ne.g. \"altpacom -x sisyphus -x p10 -n sisyphus\""
+          + "\nSupported platforms are: " + ",".join(SUPPORTED_PLATFORMS)
+)
+parser.add_argument(
+    "-a", "--arch",
+    dest="arch", action="append",
+    help="filter packages built for given architecture.",
+)
+parser.add_argument(
+    "-x", "--exclusive",
+    dest="include_exclusive_of_platform", action="append",
+    help="list packages found only in specified platform.",
+)
+parser.add_argument(
+    "-n", "--newest",
+    dest="include_newest_of_platform", action="append",
+    help="list packages with newest version found in specified platform.",
+)
+parser.add_argument(
+    "-v", "--verbosity",
+    dest="verbosity", type=str,
+    help="logging level, one of: " + ", ".join(logging._nameToLevel.keys()).lower(),
+)
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        parser.print_usage()
+        exit(0)
+
+    args = parser.parse_args()
+
+    if not args.include_exclusive_of_platform and not args.include_newest_of_platform:
+        parser.print_usage()
+        exit(0)
+
+    altpacom.setup_logging(args.verbosity.upper() if args.verbosity else None)
+
+    plat_to_package_list: Dict[str, List[PackageInfo]] = defaultdict(list)
+
+    for plat in SUPPORTED_PLATFORMS:
+        if args.arch:
+            for a in args.arch:
+                plat_to_package_list[plat].extend(
+                    apc.load_package_list(platform=plat, arch=a)["packages"]
+                )
+        else:
+            plat_to_package_list[plat].extend(
+                apc.load_package_list(platform=plat)["packages"]
+            )
+
+    #           plat   -> arch   -> packages
+    exclusives: Dict[str, Dict[str, List[PackageInfo]]] = {}
+    for plat_name, package_list in plat_to_package_list.items():
+        arch_to_pl = apc.group_by_arch(
+            apc.select_unique_in(platform=plat_name, package_lists=plat_to_package_list)
+        )
+        if args.arch:
+            arch_to_pl = {k: arch_to_pl[k] for k in args.arch}
+        exclusives[plat_name] = arch_to_pl
+
+    #           plat   -> arch   -> packages
+    newest: Dict[str, Dict[str, List[PackageInfo]]] = {}
+    for plat_name, package_list in plat_to_package_list.items():
+        arch_to_pl = apc.group_by_arch(
+            apc.select_newest_in(platform=plat_name, package_lists=plat_to_package_list)
+        )
+        if args.arch:
+            arch_to_pl = {k: arch_to_pl[k] for k in args.arch}
+        newest[plat_name] = arch_to_pl
+
+    print(json.dumps({"exclusives": exclusives, "newest": newest}))
