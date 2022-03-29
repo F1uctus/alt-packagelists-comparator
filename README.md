@@ -18,7 +18,7 @@ Here and below, `.` points to the repository root directory.
 Install with pip (requires pip >= 20.3.4 and setuptools >= 52):
 
 ```bash
-$ pip install .
+$ python3 -m pip install .
 # Use "pip install -e ." for editable install
 ````
 
