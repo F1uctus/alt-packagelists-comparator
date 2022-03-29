@@ -15,7 +15,7 @@ Full dependency list is specified in [pyproject.toml](/pyproject.toml)
 
 Here and below, `.` points to the repository root directory.
 
-Install with pip:
+Install with pip (requires pip >= 20.3.4 and setuptools >= 52):
 
 ```bash
 $ pip install .
