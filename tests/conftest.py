@@ -14,6 +14,7 @@ CACHED_LISTS_DIR = Path(__file__).parent / "cached_lists"
 def responses():
     if not USE_CACHED_LISTS:
         for pn in SUPPORTED_PLATFORMS:
+            CACHED_LISTS_DIR.mkdir(parents=True, exist_ok=True)
             with open(CACHED_LISTS_DIR / (pn + ".json"), mode="w") as f:
                 json.dump(apc.load_package_list(platform=pn, arch="aarch64"), f)
 
